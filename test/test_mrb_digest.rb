@@ -5,6 +5,13 @@ assert("MD5 hexdigest") do
   assert_equal d.digest.bytes.map{|c| "%02x" % c}.join, "c4ca4238a0b923820dcc509a6f75849b"
 end
 
+assert("RMD160 hexdigest") do
+  d = Digest::RMD160.new
+  d.update "1"
+
+  assert_equal d.digest.bytes.map{|c| "%02x" % c}.join, "c47907abd2a80492ca9388b05c0e382518ff3960"
+end
+
 assert("SHA1 hexdigest") do
   d = Digest::SHA1.new
   d.update "1"
@@ -38,6 +45,13 @@ assert("MD5 hexdigest") do
   d.update "1"
 
   assert_equal d.hexdigest, "c4ca4238a0b923820dcc509a6f75849b"
+end
+
+assert("RMD160 hexdigest") do
+  d = Digest::RMD160.new
+  d.update "1"
+
+  assert_equal d.hexdigest, "c47907abd2a80492ca9388b05c0e382518ff3960"
 end
 
 assert("SHA1 hexdigest") do
