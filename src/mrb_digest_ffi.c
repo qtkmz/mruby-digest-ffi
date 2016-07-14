@@ -11,10 +11,12 @@
 
 /*---------------------------------------------------------------------------*/
 #define MD5_LBLOCK 16
+#define RIPEMD160_LBLOCK  256
 #define SHA_LBLOCK 16
 #define SHA512_CBLOCK (SHA_LBLOCK*8)
 
 typedef unsigned long MD5_LONG;
+typedef unsigned long RIPEMD160_LONG;
 typedef unsigned long SHA_LONG;
 typedef unsigned long long SHA_LONG64;
 
@@ -24,6 +26,13 @@ typedef struct {
   MD5_LONG data[MD5_LBLOCK];
   unsigned int num;
 } MD5_CTX;
+
+typedef struct {
+  RIPEMD160_LONG A,B,C,D,E;
+  RIPEMD160_LONG Nl,Nh;
+  RIPEMD160_LONG data[RIPEMD160_LBLOCK];
+  unsigned int   num;
+} RIPEMD160_CTX;
 
 typedef struct {
   SHA_LONG h0,h1,h2,h3,h4;
@@ -77,6 +86,7 @@ typedef struct {
 
 static mrb_digest_conf conf[] = {
   { "Digest::MD5", 16, "MD5_Init", "MD5_Update", "MD5_Final", sizeof(MD5_CTX) },
+  { "Digest::RMD160", 20, "RIPEMD160_Init", "RIPEMD160_Update", "RIPEMD160_Final", sizeof(RIPEMD160_CTX) },
   { "Digest::SHA1", 20, "SHA1_Init", "SHA1_Update", "SHA1_Final", sizeof(SHA_CTX) },
   { "Digest::SHA256", 32, "SHA256_Init", "SHA256_Update", "SHA256_Final", sizeof(SHA256_CTX) },
   { "Digest::SHA384", 48, "SHA384_Init", "SHA384_Update", "SHA384_Final", sizeof(SHA512_CTX) },
@@ -97,6 +107,7 @@ static void call_update(mrb_state *mrb, void (*fn)(void), void *ctx, unsigned ch
 static void call_final(mrb_state *mrb, void (*fn)(void), void *ctx, unsigned char *md);
 static char* digest2hex(char *hex, unsigned char *digest, size_t digest_size);
 
+static mrb_value mrb_rmd160_init(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_sha1_init(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_sha256_init(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_sha384_init(mrb_state *mrb, mrb_value self);
@@ -358,6 +369,11 @@ digest2hex(char *hex, unsigned char *digest, size_t digest_size) {
 }
 
 static mrb_value
+mrb_rmd160_init(mrb_state *mrb, mrb_value self) {
+  return init(mrb, self);
+}
+
+static mrb_value
 mrb_sha1_init(mrb_state *mrb, mrb_value self) {
   return init(mrb, self);
 }
@@ -381,6 +397,7 @@ void
 mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   struct RClass *digest;
   struct RClass *md5;
+  struct RClass *rmd160;
   struct RClass *sha1;
   struct RClass *sha256;
   struct RClass *sha384;
@@ -389,6 +406,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   digest = mrb_define_module(mrb, "Digest");
 
   md5 = mrb_define_class_under(mrb, digest, "MD5", mrb->object_class);
+  rmd160 = mrb_define_class_under(mrb, digest, "RMD160", mrb->object_class);
   sha1 = mrb_define_class_under(mrb, digest, "SHA1", mrb->object_class);
   sha256 = mrb_define_class_under(mrb, digest, "SHA256", mrb->object_class);
   sha384 = mrb_define_class_under(mrb, digest, "SHA384", mrb->object_class);
@@ -400,6 +418,13 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, md5, "digest", mrb_md5_digest, MRB_ARGS_NONE());
   mrb_define_method(mrb, md5, "hexdigest", mrb_md5_hexdigest, MRB_ARGS_NONE());
 
+  MRB_SET_INSTANCE_TT(rmd160, MRB_TT_DATA);
+  mrb_define_method(mrb, rmd160, "initialize", mrb_rmd160_init, MRB_ARGS_NONE());
+  mrb_define_method(mrb, rmd160, "update", mrb_md5_update, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, rmd160, "digest", mrb_md5_digest, MRB_ARGS_NONE());
+  mrb_define_method(mrb, rmd160, "hexdigest", mrb_md5_hexdigest, MRB_ARGS_NONE());
+
+  MRB_SET_INSTANCE_TT(sha256, MRB_TT_DATA);
   MRB_SET_INSTANCE_TT(sha1, MRB_TT_DATA);
   mrb_define_method(mrb, sha1, "initialize", mrb_sha1_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha1, "update", mrb_md5_update, MRB_ARGS_REQ(1));
