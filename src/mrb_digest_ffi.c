@@ -756,7 +756,6 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, rmd160, "digest", mrb_digest_digest, MRB_ARGS_NONE());
   mrb_define_method(mrb, rmd160, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
-  MRB_SET_INSTANCE_TT(sha256, MRB_TT_DATA);
   MRB_SET_INSTANCE_TT(sha1, MRB_TT_DATA);
   mrb_define_method(mrb, sha1, "initialize", mrb_sha1_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha1, "update", mrb_digest_update, MRB_ARGS_REQ(1));
