@@ -1,4 +1,18 @@
 
+assert("Digest::XXXX.block_size") do
+  [
+    ["MD5",    64],
+    ["RMD160", 64],
+    ["SHA1",   64],
+    ["SHA256", 64],
+    ["SHA384", 128],
+    ["SHA512", 128],
+  ].each do |data|
+    d = Module.const_get("Digest").const_get(data[0]).new
+    d.block_length data[1]
+  end
+end
+
 assert("Digest::XXXX.digest") do
   [
     ["MD5",    "c4ca4238a0b923820dcc509a6f75849b"],
@@ -11,6 +25,20 @@ assert("Digest::XXXX.digest") do
     d = Module.const_get("Digest").const_get(data[0]).new
     d.update "1"
     assert_equal d.digest.bytes.map{|c| "%02x" % c}.join, data[1]
+  end
+end
+
+assert("Digest::XXXX.digest_size") do
+  [
+    ["MD5",    16],
+    ["RMD160", 20],
+    ["SHA1",   20],
+    ["SHA256", 32],
+    ["SHA384", 48],
+    ["SHA512", 64],
+  ].each do |data|
+    d = Module.const_get("Digest").const_get(data[0]).new
+    d.digest_length data[1]
   end
 end
 
@@ -29,6 +57,18 @@ assert("Digest::XXXX.hexdigest") do
   end
 end
 
+assert("Digest::HMAC.block_size") do
+  [
+    [Digest::MD5,    64],
+    [Digest::RMD160, 64],
+    [Digest::SHA1,   64],
+    [Digest::SHA256, 64],
+    [Digest::SHA384, 128],
+    [Digest::SHA512, 128],
+  ].each do |data|
+    assert_equal Digest::HMAC.new("1", data[0]).block_length, data[1]
+  end
+end
 
 assert("Digest::HMAC.digest") do
   [
@@ -42,6 +82,19 @@ assert("Digest::HMAC.digest") do
     h = Digest::HMAC.new "key", Module.const_get("Digest").const_get(data[0])
     h.update "1"
     assert_equal h.digest.bytes.map{|c| "%02x" % c}.join, data[1]
+  end
+end
+
+assert("Digest::HMAC.digest_size") do
+  [
+    [Digest::MD5,    16],
+    [Digest::RMD160, 20],
+    [Digest::SHA1,   20],
+    [Digest::SHA256, 32],
+    [Digest::SHA384, 48],
+    [Digest::SHA512, 64],
+  ].each do |data|
+    assert_equal Digest::HMAC.new("1", data[0]).digest_length, data[1]
   end
 end
 
