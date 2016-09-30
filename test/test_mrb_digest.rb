@@ -13,6 +13,25 @@ assert("Digest::XXXX.block_size") do
   end
 end
 
+assert("Digest::XXXX.reset") do
+  [
+    ["MD5",    "c4ca4238a0b923820dcc509a6f75849b"],
+    ["RMD160", "c47907abd2a80492ca9388b05c0e382518ff3960"],
+    ["SHA1",   "356a192b7913b04c54574d18c28d46e6395428ab"],
+    ["SHA256", "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"],
+    ["SHA384", "47f05d367b0c32e438fb63e6cf4a5f35c2aa2f90dc7543f8a41a0f95ce8a40a313ab5cf36134a2068c4c969cb50db776"],
+    ["SHA512", "4dff4ea340f0a823f15d3f4f01ab62eae0e5da579ccb851f8db9dfe84c58b2b37b89903a740e1ee172da793a6e79d560e5f7f9bd058a12a280433ed6fa46510a"],
+  ].each do |data|
+    d = Module.const_get("Digest").const_get(data[0]).new
+    d.update "aaa"
+    d.update "bbb"
+    d.update "ccc"
+    d.reset
+    d.update "1"
+    assert_equal d.digest.bytes.map{|c| "%02x" % c}.join, data[1]
+  end
+end
+
 assert("Digest::XXXX.digest") do
   [
     ["MD5",    "c4ca4238a0b923820dcc509a6f75849b"],

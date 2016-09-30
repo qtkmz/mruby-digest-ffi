@@ -124,6 +124,7 @@ static mrb_digest_conf conf[] = {
 };
 
 static mrb_value mrb_digest_block_length(mrb_state *mrb, mrb_value self);
+static mrb_value mrb_digest_reset(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_digest_update(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_digest_digest(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_digest_digest_length(mrb_state *mrb, mrb_value self);
@@ -179,6 +180,20 @@ mrb_digest_block_length(mrb_state *mrb, mrb_value self) {
   }
 
   return mrb_fixnum_value(digest->block_size);
+}
+
+static mrb_value
+mrb_digest_reset(mrb_state *mrb, mrb_value self) {
+  mrb_digest *digest;
+
+  digest = mrb_get_datatype(mrb, self, &mrb_digest_type);
+  if (digest == NULL) {
+    mrb_raise(mrb, E_ARGUMENT_ERROR, "invalid argument");
+  }
+
+  call_init(mrb, FFI_FN(digest->func_init), digest->ctx);
+
+  return self;
 }
 
 static mrb_value
@@ -811,6 +826,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   MRB_SET_INSTANCE_TT(md5, MRB_TT_DATA);
   mrb_define_method(mrb, md5, "initialize", mrb_md5_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, md5, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
+  mrb_define_method(mrb, md5, "reset", mrb_digest_reset, MRB_ARGS_NONE());
   mrb_define_method(mrb, md5, "update", mrb_digest_update, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, md5, "digest", mrb_digest_digest, MRB_ARGS_NONE());
   mrb_define_method(mrb, md5, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
@@ -819,6 +835,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   MRB_SET_INSTANCE_TT(rmd160, MRB_TT_DATA);
   mrb_define_method(mrb, rmd160, "initialize", mrb_rmd160_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, rmd160, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
+  mrb_define_method(mrb, rmd160, "reset", mrb_digest_reset, MRB_ARGS_NONE());
   mrb_define_method(mrb, rmd160, "update", mrb_digest_update, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, rmd160, "digest", mrb_digest_digest, MRB_ARGS_NONE());
   mrb_define_method(mrb, rmd160, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
@@ -827,6 +844,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   MRB_SET_INSTANCE_TT(sha1, MRB_TT_DATA);
   mrb_define_method(mrb, sha1, "initialize", mrb_sha1_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha1, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
+  mrb_define_method(mrb, sha1, "reset", mrb_digest_reset, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha1, "update", mrb_digest_update, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sha1, "digest", mrb_digest_digest, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha1, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
@@ -835,6 +853,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   MRB_SET_INSTANCE_TT(sha256, MRB_TT_DATA);
   mrb_define_method(mrb, sha256, "initialize", mrb_sha256_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha256, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
+  mrb_define_method(mrb, sha256, "reset", mrb_digest_reset, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha256, "update", mrb_digest_update, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sha256, "digest", mrb_digest_digest, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha256, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
@@ -843,6 +862,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   MRB_SET_INSTANCE_TT(sha384, MRB_TT_DATA);
   mrb_define_method(mrb, sha384, "initialize", mrb_sha384_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha384, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
+  mrb_define_method(mrb, sha384, "reset", mrb_digest_reset, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha384, "update", mrb_digest_update, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sha384, "digest", mrb_digest_digest, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha384, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
@@ -851,6 +871,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   MRB_SET_INSTANCE_TT(sha512, MRB_TT_DATA);
   mrb_define_method(mrb, sha512, "initialize", mrb_sha512_init, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha512, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
+  mrb_define_method(mrb, sha512, "reset", mrb_digest_reset, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha512, "update", mrb_digest_update, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sha512, "digest", mrb_digest_digest, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha512, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
