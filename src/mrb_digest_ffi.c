@@ -127,6 +127,7 @@ static mrb_value mrb_digest_block_length(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_digest_reset(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_digest_update(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_digest_digest(mrb_state *mrb, mrb_value self);
+static mrb_value mrb_digest_digest_bang(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_digest_digest_length(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_digest_hmac_block_length(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_digest_hmac_update(mrb_state *mrb, mrb_value self);
@@ -234,6 +235,23 @@ mrb_digest_digest(mrb_state *mrb, mrb_value self) {
   call_final(mrb, FFI_FN(digest->func_final), ctx_tmp, md);
 
   free(ctx_tmp);
+
+  return mrb_str_new(mrb, (char *)md, digest->digest_size);
+}
+
+static mrb_value
+mrb_digest_digest_bang(mrb_state *mrb, mrb_value self) {
+  mrb_digest *digest;
+  unsigned char md[MRB_DIGEST_AVAILABLE_SIZ];
+
+  digest = mrb_get_datatype(mrb, self, &mrb_digest_type);
+  if (digest == NULL) {
+    mrb_raise(mrb, E_ARGUMENT_ERROR, "invalid argument");
+  }
+
+  call_final(mrb, FFI_FN(digest->func_final), digest->ctx, md);
+
+  call_init(mrb, FFI_FN(digest->func_init), digest->ctx);
 
   return mrb_str_new(mrb, (char *)md, digest->digest_size);
 }
@@ -829,6 +847,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, md5, "reset", mrb_digest_reset, MRB_ARGS_NONE());
   mrb_define_method(mrb, md5, "update", mrb_digest_update, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, md5, "digest", mrb_digest_digest, MRB_ARGS_NONE());
+  mrb_define_method(mrb, md5, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
   mrb_define_method(mrb, md5, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
   mrb_define_method(mrb, md5, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
@@ -838,6 +857,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, rmd160, "reset", mrb_digest_reset, MRB_ARGS_NONE());
   mrb_define_method(mrb, rmd160, "update", mrb_digest_update, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, rmd160, "digest", mrb_digest_digest, MRB_ARGS_NONE());
+  mrb_define_method(mrb, rmd160, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
   mrb_define_method(mrb, rmd160, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
   mrb_define_method(mrb, rmd160, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
@@ -847,6 +867,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, sha1, "reset", mrb_digest_reset, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha1, "update", mrb_digest_update, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sha1, "digest", mrb_digest_digest, MRB_ARGS_NONE());
+  mrb_define_method(mrb, sha1, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha1, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha1, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
@@ -856,6 +877,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, sha256, "reset", mrb_digest_reset, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha256, "update", mrb_digest_update, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sha256, "digest", mrb_digest_digest, MRB_ARGS_NONE());
+  mrb_define_method(mrb, sha256, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha256, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha256, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
@@ -865,6 +887,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, sha384, "reset", mrb_digest_reset, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha384, "update", mrb_digest_update, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sha384, "digest", mrb_digest_digest, MRB_ARGS_NONE());
+  mrb_define_method(mrb, sha384, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha384, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha384, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
@@ -874,6 +897,7 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, sha512, "reset", mrb_digest_reset, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha512, "update", mrb_digest_update, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, sha512, "digest", mrb_digest_digest, MRB_ARGS_NONE());
+  mrb_define_method(mrb, sha512, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha512, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
   mrb_define_method(mrb, sha512, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
