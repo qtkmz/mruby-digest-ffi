@@ -23,7 +23,7 @@ assert("Digest::XXXX.block_size") do
     ["SHA512", 128],
   ].each do |data|
     d = Module.const_get("Digest").const_get(data[0]).new
-    d.block_length data[1]
+    assert_equal d.block_length, data[1]
   end
 end
 
