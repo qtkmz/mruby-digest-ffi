@@ -151,6 +151,7 @@ static void call_hmac_final(mrb_state *mrb, void (*fn)(void), void *ctx, unsigne
 
 static char* digest2hex(char *hex, unsigned char *digest, size_t digest_size);
 
+static mrb_value mrb_base_init(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_md5_init(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_rmd160_init(mrb_state *mrb, mrb_value self);
 static mrb_value mrb_sha1_init(mrb_state *mrb, mrb_value self);
@@ -663,6 +664,14 @@ digest2hex(char *hex, unsigned char *digest, size_t digest_size) {
 }
 
 static mrb_value
+mrb_base_init(mrb_state *mrb, mrb_value self) {
+  mrb_raise(mrb, E_NOTIMP_ERROR, "Digest::Base is an abstract class");
+
+  return self;
+}
+
+
+static mrb_value
 mrb_md5_init(mrb_state *mrb, mrb_value self) {
   mrb_digest *digest = init(mrb, self);
 
@@ -824,6 +833,7 @@ get_evp_md_func(mrb_state *mrb, mrb_digest *digest, const char *name) {
 void
 mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
   struct RClass *digest;
+  struct RClass *base;
   struct RClass *md5;
   struct RClass *rmd160;
   struct RClass *sha1;
@@ -834,72 +844,41 @@ mrb_mruby_digest_ffi_gem_init(mrb_state* mrb) {
 
   digest = mrb_define_module(mrb, "Digest");
 
-  md5 = mrb_define_class_under(mrb, digest, "MD5", mrb->object_class);
-  rmd160 = mrb_define_class_under(mrb, digest, "RMD160", mrb->object_class);
-  sha1 = mrb_define_class_under(mrb, digest, "SHA1", mrb->object_class);
-  sha256 = mrb_define_class_under(mrb, digest, "SHA256", mrb->object_class);
-  sha384 = mrb_define_class_under(mrb, digest, "SHA384", mrb->object_class);
-  sha512 = mrb_define_class_under(mrb, digest, "SHA512", mrb->object_class);
+  base = mrb_define_class_under(mrb, digest, "Base", mrb->object_class);
+  md5 = mrb_define_class_under(mrb, digest, "MD5", base);
+  rmd160 = mrb_define_class_under(mrb, digest, "RMD160", base);
+  sha1 = mrb_define_class_under(mrb, digest, "SHA1", base);
+  sha256 = mrb_define_class_under(mrb, digest, "SHA256", base);
+  sha384 = mrb_define_class_under(mrb, digest, "SHA384", base);
+  sha512 = mrb_define_class_under(mrb, digest, "SHA512", base);
+
+  MRB_SET_INSTANCE_TT(base, MRB_TT_DATA);
+  mrb_define_method(mrb, base, "initialize", mrb_base_init, MRB_ARGS_NONE());
+  mrb_define_method(mrb, base, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
+  mrb_define_method(mrb, base, "reset", mrb_digest_reset, MRB_ARGS_NONE());
+  mrb_define_method(mrb, base, "update", mrb_digest_update, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, base, "digest", mrb_digest_digest, MRB_ARGS_NONE());
+  mrb_define_method(mrb, base, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
+  mrb_define_method(mrb, base, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
+  mrb_define_method(mrb, base, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
   MRB_SET_INSTANCE_TT(md5, MRB_TT_DATA);
   mrb_define_method(mrb, md5, "initialize", mrb_md5_init, MRB_ARGS_NONE());
-  mrb_define_method(mrb, md5, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
-  mrb_define_method(mrb, md5, "reset", mrb_digest_reset, MRB_ARGS_NONE());
-  mrb_define_method(mrb, md5, "update", mrb_digest_update, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, md5, "digest", mrb_digest_digest, MRB_ARGS_NONE());
-  mrb_define_method(mrb, md5, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
-  mrb_define_method(mrb, md5, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
-  mrb_define_method(mrb, md5, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
   MRB_SET_INSTANCE_TT(rmd160, MRB_TT_DATA);
   mrb_define_method(mrb, rmd160, "initialize", mrb_rmd160_init, MRB_ARGS_NONE());
-  mrb_define_method(mrb, rmd160, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
-  mrb_define_method(mrb, rmd160, "reset", mrb_digest_reset, MRB_ARGS_NONE());
-  mrb_define_method(mrb, rmd160, "update", mrb_digest_update, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, rmd160, "digest", mrb_digest_digest, MRB_ARGS_NONE());
-  mrb_define_method(mrb, rmd160, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
-  mrb_define_method(mrb, rmd160, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
-  mrb_define_method(mrb, rmd160, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
   MRB_SET_INSTANCE_TT(sha1, MRB_TT_DATA);
   mrb_define_method(mrb, sha1, "initialize", mrb_sha1_init, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha1, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha1, "reset", mrb_digest_reset, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha1, "update", mrb_digest_update, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, sha1, "digest", mrb_digest_digest, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha1, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha1, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha1, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
   MRB_SET_INSTANCE_TT(sha256, MRB_TT_DATA);
   mrb_define_method(mrb, sha256, "initialize", mrb_sha256_init, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha256, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha256, "reset", mrb_digest_reset, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha256, "update", mrb_digest_update, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, sha256, "digest", mrb_digest_digest, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha256, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha256, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha256, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
   MRB_SET_INSTANCE_TT(sha384, MRB_TT_DATA);
   mrb_define_method(mrb, sha384, "initialize", mrb_sha384_init, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha384, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha384, "reset", mrb_digest_reset, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha384, "update", mrb_digest_update, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, sha384, "digest", mrb_digest_digest, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha384, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha384, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha384, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
   MRB_SET_INSTANCE_TT(sha512, MRB_TT_DATA);
   mrb_define_method(mrb, sha512, "initialize", mrb_sha512_init, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha512, "block_length", mrb_digest_block_length, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha512, "reset", mrb_digest_reset, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha512, "update", mrb_digest_update, MRB_ARGS_REQ(1));
-  mrb_define_method(mrb, sha512, "digest", mrb_digest_digest, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha512, "digest!", mrb_digest_digest_bang, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha512, "digest_length", mrb_digest_digest_length, MRB_ARGS_NONE());
-  mrb_define_method(mrb, sha512, "hexdigest", mrb_digest_hexdigest, MRB_ARGS_NONE());
 
   hmac = mrb_define_class_under(mrb, digest, "HMAC", mrb->object_class);
 

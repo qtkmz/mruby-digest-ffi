@@ -1,3 +1,8 @@
+assert("Digest::Base.new") do
+  assert_raise(NotImplementedError, "Digest::Base is an abstract class") do
+    Digest::Base.new
+  end
+end
 
 assert("Digest::XXXX.block_size") do
   [
