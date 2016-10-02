@@ -4,6 +4,15 @@ assert("Digest::Base.new") do
   end
 end
 
+assert("Digest::Base alias methods") do
+  d = Digest::MD5.new
+
+   assert_true d.respond_to?(:length)
+   assert_true d.respond_to?(:size)
+   assert_true d.respond_to?(:to_s)
+   assert_true d.respond_to?("<<")
+end
+
 assert("Digest::XXXX.block_size") do
   [
     ["MD5",    64],
